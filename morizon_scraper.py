@@ -5,6 +5,8 @@ from datetime import datetime
 from time import sleep
 import unidecode
 
+import os
+import requests
 
 
 def full_driver():
@@ -83,3 +85,68 @@ def get_links(driver: webdriver.chrome.webdriver.WebDriver,
     return estates_all
         
 
+    
+def get_offers(driver: webdriver.chrome.webdriver.WebDriver,
+               urls: list
+              ):
+    
+    offers_data = []
+    
+    for url in urls:
+    
+        driver.get(url)
+        html = driver.page_source
+        soup = BeautifulSoup(html, "html.parser")
+
+        params = {}
+
+        # geographical coordiates
+        params["latitude"] = soup.find('div', {'class': "GoogleMap"}).get('data-lat')
+        params["longitude"] = soup.find('div', {'class': "GoogleMap"}).get('data-lng')
+
+        # offer id 
+        data_id = soup.find('span', {"class": "ucFavourite"}).a.get("data-id")
+        params["data_id"] = data_id
+
+        dir = "img/" + data_id
+
+        if not os.path.exists(dir):
+            os.mkdir(dir)
+            for image in soup.find("ul", {"class": "list-unstyled list-inline imageBoxList"}).findAll('li'):
+
+                if image.img.get("style"):
+                    href = str(image.img.get("src"))
+                else:
+                    href =  str(image.img.get('data-original'))
+
+                n = image.img.get("data-number")
+
+                page = requests.get(href.replace('144/100/4', '832/468/2'))
+
+                with open(dir + "/" + str(n) + ".jpg", 'wb') as f:
+                    f.write(page.content)
+
+        try:
+            for row in soup.find("section", {"class" : "params clearfix"}).findAll("table")[0].tbody.findAll('tr'):
+                params[row.th.getText().replace("\n", "")] = row.td.getText().replace("\n", "")
+        except:
+            continue
+            
+        try:
+            for row in soup.find("section", {"class" : "params clearfix"}).findAll("table")[1].tbody.findAll('tr'):
+                params[row.th.getText().replace("\n", "")] = row.td.getText().replace("\n", "")
+        except:
+            continue
+
+        try:
+            for h3 in soup.find("section", {"class" : "params clearfix"}).findAll('h3')[2:]:
+                params[h3.getText().replace("\n", "")] = h3.find_next('p').getText().replace("\n", "")
+        except:
+            continue
+
+        params[soup.find("section", {'class': "descriptionContent"}).h3.getText().replace("\n", "")
+              ] = soup.find("section", {'class': "descriptionContent"}).getText().replace("\n", " ").replace("\u200b", " ")
+        
+        offers_data.append(params)
+        
+    return offers_data
