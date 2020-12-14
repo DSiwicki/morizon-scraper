@@ -52,6 +52,13 @@ def get_links(driver: webdriver.chrome.webdriver.WebDriver,
     estates_all = []
     
     driver.get(url + sp_trns + sp_type + "/" + city + "/" + district)
+    
+    sleep(5)
+        
+    if driver.find_element_by_css_selector("button.sc-ifAKCX.dvvOSu"):
+        driver.find_element_by_css_selector("button.sc-ifAKCX.dvvOSu").click()
+
+
         
     while True:
         
@@ -65,8 +72,8 @@ def get_links(driver: webdriver.chrome.webdriver.WebDriver,
 
         elementy = [[datetime.now(),
                     item.find('section').find('a').get('href'),
-                    item.find('section').find('a').find('h2', attrs = {'class' : "single-result__title"}).getText(),
-                    item.find('section').find('a').find('span', attrs = {'class': "single-result__category single-result__category--date"}).getText(),
+                    item.find('section').find('a').find('h2', attrs = {'class' : "single-result__title"}).getText().replace("\n", ""),
+                    item.find('section').find('a').find('span', attrs = {'class': "single-result__category single-result__category--date"}).getText().replace("\n", ""),
                     item.find('section').find('a').find('meta', attrs = {'itemprop' : 'price'}).get('content'),
                     item.find('section').find('a').find('meta', attrs = {'itemprop' : 'priceCurrency'}).get('content'),
                     item.find('section').find('div', {"class" : "info-description single-result__info"}).ul.findAll('li')[0].getText(),
@@ -93,10 +100,15 @@ def get_offers(driver: webdriver.chrome.webdriver.WebDriver,
     offers_data = []
     
     for url in urls:
-    
+        
         driver.get(url)
         html = driver.page_source
         soup = BeautifulSoup(html, "html.parser")
+        
+        sleep(5)
+        
+        if driver.find_element_by_css_selector("button.sc-ifAKCX.dvvOSu"):
+            driver.find_element_by_css_selector("button.sc-ifAKCX.dvvOSu").click()
 
         params = {}
 
